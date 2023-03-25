@@ -11,6 +11,7 @@ from torchvision import transforms
 from unet import UNet
 from utils.data_vis import plot_img_and_mask
 from utils.dataset import BasicDataset
+import timeit
 
 import cv2
 
@@ -194,6 +195,7 @@ if __name__ == "__main__":
     out = cv2.VideoWriter('../data/UNetPreds/' + outname, fourcc, 25, (500, 280))
 
     ctr = 0
+    t_0 = timeit.default_timer()
     for frame in vid:
 
         mask = predict_img(net=net,
@@ -206,10 +208,12 @@ if __name__ == "__main__":
         fmask = postprocess(frame, mask)
         # print(fmask.shape)
         out.write(fmask)
-        ctr += 1
-        if(ctr%10 == 0):
-            print(ctr)
+        # ctr += 1
+        # if(ctr%10 == 0):
+        #     print(ctr)
 
     out.release()
 
+    t_1 = timeit.default_timer()
 
+    print("Time Taken: ", t_1 - t_0, "seconds")
