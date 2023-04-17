@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from torch import optim
 from tqdm import tqdm
+import torchsummary
 
 from eval import eval_net
 from unet import UNet
@@ -147,6 +148,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     args = get_args()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     logging.info(f'Using device {device}')
 
     # Change here to adapt to your data
@@ -168,6 +170,7 @@ if __name__ == '__main__':
         logging.info(f'Model loaded from {args.load}')
 
     net.to(device=device)
+    torchsummary.summary(net, input_size=(3, 160, 160))
     # faster convolutions, but more memory
     # cudnn.benchmark = True
 
