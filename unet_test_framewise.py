@@ -144,6 +144,22 @@ def postprocess(img, mask):
 
     return vop
 
+def contoured(vframe, vmask):
+
+    frame = np.asarray(vframe, np.uint8)
+    mask = np.asarray(vmask, np.uint8)
+
+    contours, hierarchy = cv2.findContours(mask,
+        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    mframe = np.zeros(shape = frame.shape, dtype = np.uint8)
+
+    cv2.drawContours(mframe, contours, -1, (0, 255, 0), 1)
+
+    mframe = cv2.resize(mframe, (96, 96), interpolation = cv2.INTER_CUBIC)
+
+    return mframe
+
 
 if __name__ == "__main__":
     args = get_args()
@@ -192,6 +208,7 @@ if __name__ == "__main__":
     outname = videoPath.split('/')[-1]
     print(os.path.abspath('../data/UNetPreds/' + outname))
     out = cv2.VideoWriter('../data/UNetPreds/' + outname, fourcc, 25, (500, 280))
+    outC = cv2.VideoWriter('../data/UNetPreds/contoured' + outname, fourcc, 25, (96, 96))
 
     ctr = 0
     npv = list()
@@ -205,16 +222,18 @@ if __name__ == "__main__":
         # print(mask)
 
         fmask = postprocess(frame, mask)
+        cmask = contoured(frame, mask)
         # print(fmask.shape)
         fmask1 = np.array(mask)
         npv.append(fmask1)
         out.write(fmask)
+        outC.write(cmask)
         fmask = cv2.resize(fmask, (384, 384), interpolation = cv2.INTER_CUBIC)
-        cv2.imwrite('../data/UNet_demo031_preds/' + str(ctr) + '.png', fmask)
+        # cv2.imwrite('../data/UNet_demo031_preds/' + str(ctr) + '.png', fmask)
         ctr += 1
         if(ctr%10 == 0):
             print(ctr)
 
     out.release()
+    outC.release()
     np.save('masksFinal', np.array(npv), allow_pickle=False)
-
