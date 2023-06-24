@@ -154,11 +154,13 @@ def contoured(vframe, vmask):
 
     mframe = np.zeros(shape = frame.shape, dtype = np.uint8)
 
-    cv2.drawContours(mframe, contours, -1, (0, 255, 0), 1)
+    cv2.drawContours(mframe, contours, -1, (255, 255, 255), 1)
 
-    mframe = cv2.resize(mframe, (96, 96), interpolation = cv2.INTER_CUBIC)
+    mframe = cv2.resize(mframe, (384, 384), interpolation = cv2.INTER_CUBIC)
 
-    return mframe
+    cmframe = (np.sum(mframe, axis=2) == 765)
+
+    return mframe, cmframe
 
 
 if __name__ == "__main__":
@@ -208,10 +210,11 @@ if __name__ == "__main__":
     outname = videoPath.split('/')[-1]
     print(os.path.abspath('../data/UNetPreds/' + outname))
     out = cv2.VideoWriter('../data/UNetPreds/' + outname, fourcc, 25, (500, 280))
-    outC = cv2.VideoWriter('../data/UNetPreds/contoured' + outname, fourcc, 25, (96, 96))
+    outC = cv2.VideoWriter('../data/UNetPreds/contoured' + outname, fourcc, 25, (384, 384))
 
     ctr = 0
     npv = list()
+    npc = list()
     for frame in vid:
 
         mask = predict_img(net=net,
@@ -222,10 +225,11 @@ if __name__ == "__main__":
         # print(mask)
 
         fmask = postprocess(frame, mask)
-        cmask = contoured(frame, mask)
+        cmask, cmasknp = contoured(frame, mask)
         # print(fmask.shape)
         fmask1 = np.array(mask)
         npv.append(fmask1)
+        npc.append(cmasknp)
         out.write(fmask)
         outC.write(cmask)
         fmask = cv2.resize(fmask, (384, 384), interpolation = cv2.INTER_CUBIC)
@@ -236,4 +240,5 @@ if __name__ == "__main__":
 
     out.release()
     outC.release()
+    np.save('masksFinalContoured', np.array(npc), allow_pickle=False)
     np.save('masksFinal', np.array(npv), allow_pickle=False)
